@@ -1,0 +1,65 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                           Spyder Equity Protection Stop.mq5 |
+//|                                 Copyright 2022, Forex Robot Easy Team |
+//|                                              https://www.forexroboteasy.com |
+//+------------------------------------------------------------------+
+#property strict
+
+// Global variables
+double predefinedLossLevel = 0.05; // Predefined loss level (5%)
+double predefinedThreshold = 0.1; // Predefined threshold (10%)
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Add initialization code here
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Add deinitialization code here
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Get current account equity
+    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+
+    // Check if predefined loss level is breached
+    if (equity < AccountInfoDouble(ACCOUNT_BALANCE) * (1 - predefinedLossLevel))
+    {
+        CloseAllPositions(); // Close all positions
+        Print('All positions closed due to excessive drawdown.'); // Print message
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Function to close all positions                                  |
+//+------------------------------------------------------------------+
+void CloseAllPositions()
+{
+    int totalPositions = PositionsTotal(); // Get total number of positions
+
+    // Iterate through all positions and close them
+    for (int i = totalPositions - 1; i >= 0; i--)
+    {
+        if (PositionSelectByIndex(i))
+        {
+            bool result = OrderClose(PositionGetTicket(), PositionGetDouble(POSITION_VOLUME), MarketInfo(PositionGetSymbol(), MODE_BID), 0, clrRed);
+            if (!result)
+            {
+                Print('Failed to close position: ', GetLastError()); // Print error message
+            }
+        }
+    }
+}
